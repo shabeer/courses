@@ -1,0 +1,18 @@
+
+# Directories to ignore when uploading code to floyd
+# Do not add a trailing slash for directories
+
+.git
+.eggs
+eggs
+lib
+lib64
+parts
+sdist
+var
+data
+model.json
+model_weights.h5
+model_fully_trained.json
+model_weights_fully_trained.h5
+model_weights_fully_trained.h5.crdownload

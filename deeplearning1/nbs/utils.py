@@ -39,10 +39,12 @@ from keras.models import Sequential, Model
 from keras.layers import Input, Embedding, Reshape, merge, LSTM, Bidirectional
 from keras.layers import TimeDistributed, Activation, SimpleRNN, GRU
 from keras.layers.core import Flatten, Dense, Dropout, Lambda
-from keras.regularizers import l2, activity_l2, l1, activity_l1
+#from keras.regularizers import l2, activity_l2, l1, activity_l1
+from keras.regularizers import l1,l2
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import SGD, RMSprop, Adam
-from keras.utils.layer_utils import layer_from_config
+#from keras.utils.layer_utils import layer_from_config
+from keras.layers import deserialize as layer_from_config
 from keras.metrics import categorical_crossentropy, categorical_accuracy
 from keras.layers.convolutional import *
 from keras.preprocessing import image, sequence
@@ -54,6 +56,13 @@ np.set_printoptions(precision=4, linewidth=100)
 
 
 to_bw = np.array([0.299, 0.587, 0.114])
+keras_cache_dir = os.path.join(os.getenv("HOME"), ".keras")
+
+def set_keras_cache_dir(keras_cache_dirpath):
+    keras_cache_dir = keras_cache_dirpath
+
+def get_keras_cache_dir():
+    return keras_cache_dir
 
 def gray(img):
     if K.image_dim_ordering() == 'tf':

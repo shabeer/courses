@@ -33,7 +33,7 @@ class Resnet50():
 
     def get_classes(self):
         fname = 'imagenet_class_index.json'
-        fpath = get_file(fname, self.FILE_PATH+fname, cache_subdir='models')
+        fpath = get_file(fname, self.FILE_PATH+fname, cache_subdir='models', cache_dir = utils.get_keras_cache_dir())
         with open(fpath) as f:
             class_dict = json.load(f)
         self.classes = [class_dict[str(i)][1] for i in range(len(class_dict))]
@@ -87,7 +87,7 @@ class Resnet50():
         self.img_input = img_input
         self.model = Model(self.img_input, x)
         convert_all_kernels_in_model(self.model)
-        self.model.load_weights(get_file(fname, self.FILE_PATH+fname, cache_subdir='models'))
+        self.model.load_weights(get_file(fname, self.FILE_PATH+fname, cache_subdir='models', cache_dir = utils.get_keras_cache_dir()))
 
 
     def get_batches(self, path, gen=image.ImageDataGenerator(),class_mode='categorical', shuffle=True, batch_size=8):

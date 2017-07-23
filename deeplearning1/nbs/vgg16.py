@@ -6,22 +6,18 @@ import numpy as np
 from scipy import misc, ndimage
 from scipy.ndimage.interpolation import zoom
 
+import utils; reload(utils)
 from keras import backend as K
 from keras.layers.normalization import BatchNormalization
 from keras.utils.data_utils import get_file
 from keras.models import Sequential
 from keras.layers.core import Flatten, Dense, Dropout, Lambda
-from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
+from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D
 from keras.layers.pooling import GlobalAveragePooling2D
 from keras.optimizers import SGD, RMSprop, Adam
 from keras.preprocessing import image
 
-# In case we are going to use the TensorFlow backend we need to explicitly set the Theano image ordering
-from keras import backend as K
-K.set_image_dim_ordering('th')
 
-
-vgg_mean = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3,1,1))
 def vgg_preprocess(x):
     """
         Subtracts the mean RGB value, and transposes RGB to BGR.
@@ -32,6 +28,7 @@ def vgg_preprocess(x):
         Returns:
             Image array (height x width x transposed_channels)
     """
+    vgg_mean = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3,1,1))
     x = x - vgg_mean
     return x[:, ::-1] # reverse axis rgb->bgr
 
@@ -54,7 +51,7 @@ class Vgg16():
             The file is downloaded only if it not already in the cache.
         """
         fname = 'imagenet_class_index.json'
-        fpath = get_file(fname, self.FILE_PATH+fname, cache_subdir='models')
+        fpath = get_file(fname, self.FILE_PATH+fname, cache_subdir='models', cache_dir = utils.get_keras_cache_dir())
         with open(fpath) as f:
             class_dict = json.load(f)
         self.classes = [class_dict[str(i)][1] for i in range(len(class_dict))]
@@ -97,7 +94,7 @@ class Vgg16():
         model = self.model
         for i in range(layers):
             model.add(ZeroPadding2D((1, 1)))
-            model.add(Convolution2D(filters, 3, 3, activation='relu'))
+            model.add(Conv2D(filters, (3, 3), activation='relu'))
         model.add(MaxPooling2D((2, 2), strides=(2, 2)))
 
 
@@ -136,7 +133,7 @@ class Vgg16():
         model.add(Dense(1000, activation='softmax'))
 
         fname = 'vgg16.h5'
-        model.load_weights(get_file(fname, self.FILE_PATH+fname, cache_subdir='models'))
+        model.load_weights(get_file(fname, self.FILE_PATH+fname, cache_subdir='models', cache_dir = utils.get_keras_cache_dir()))
 
 
     def get_batches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical'):
@@ -174,7 +171,7 @@ class Vgg16():
                 batches : A keras.preprocessing.image.ImageDataGenerator object.
                           See definition for get_batches().
         """
-        self.ft(batches.nb_class)
+        self.ft(batches.num_class)
         classes = list(iter(batches.class_indices)) # get a list of all the class labels
         
         # batches.class_indices is a dict with the class name as key and an index as value
@@ -209,8 +206,8 @@ class Vgg16():
             Fits the model on data yielded batch-by-batch by a Python generator.
             See Keras documentation: https://keras.io/models/model/
         """
-        self.model.fit_generator(batches, samples_per_epoch=batches.nb_sample, nb_epoch=nb_epoch,
-                validation_data=val_batches, nb_val_samples=val_batches.nb_sample)
+        self.model.fit_generator(batches, steps_per_epoch=batches.samples, epochs=nb_epoch,
+                validation_data=val_batches, validation_steps=val_batches.samples)
 
 
     def test(self, path, batch_size=8):
@@ -227,5 +224,5 @@ class Vgg16():
     
         """
         test_batches = self.get_batches(path, shuffle=False, batch_size=batch_size, class_mode=None)
-        return test_batches, self.model.predict_generator(test_batches, test_batches.nb_sample)
+        return test_batches, self.model.predict_generator(test_batches, test_batches.samples)
 

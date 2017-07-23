@@ -16,9 +16,6 @@ from keras.layers.pooling import GlobalAveragePooling2D
 from keras.optimizers import SGD, Adam
 from keras.preprocessing import image
 
-# In case we are going to use the TensorFlow backend we need to explicitly set the Theano image ordering
-from keras import backend as K
-K.set_image_dim_ordering('th')
 
 vgg_mean = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3,1,1))
 def vgg_preprocess(x):
@@ -38,7 +35,7 @@ class Vgg16BN():
 
     def get_classes(self):
         fname = 'imagenet_class_index.json'
-        fpath = get_file(fname, self.FILE_PATH+fname, cache_subdir='models')
+        fpath = get_file(fname, self.FILE_PATH+fname, cache_subdir='models', cache_dir = utils.get_keras_cache_dir())
         with open(fpath) as f:
             class_dict = json.load(f)
         self.classes = [class_dict[str(i)][1] for i in range(len(class_dict))]
@@ -81,7 +78,7 @@ class Vgg16BN():
 
         if not include_top:
             fname = 'vgg16_bn_conv.h5'
-            model.load_weights(get_file(fname, self.FILE_PATH+fname, cache_subdir='models'))
+            model.load_weights(get_file(fname, self.FILE_PATH+fname, cache_subdir='models', cache_dir = utils.get_keras_cache_dir()))
             return
 
         model.add(Flatten())
@@ -90,7 +87,7 @@ class Vgg16BN():
         model.add(Dense(1000, activation='softmax'))
 
         fname = 'vgg16_bn.h5'
-        model.load_weights(get_file(fname, self.FILE_PATH+fname, cache_subdir='models'))
+        model.load_weights(get_file(fname, self.FILE_PATH+fname, cache_subdir='models', cache_dir = utils.get_keras_cache_dir()))
 
 
     def get_batches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical'):
